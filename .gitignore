@@ -44,6 +44,10 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
-**/**/patch-tailscale.yaml
 **/**/common.yaml
 **/**/secrets.yaml
+config/controlplane.yaml
+config/talosconfig
+config/worker.yaml
+config/talos-ctrl.yaml
+config/talos-worker.yaml

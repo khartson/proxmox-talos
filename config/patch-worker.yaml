@@ -1,0 +1,21 @@
+machine:
+  network:
+    hostname: talos-worker-01
+    interfaces:
+      - deviceSelector:
+          physical: true 
+        addresses:
+          - <YOUR_IP_HERE>
+        routes:
+          - network: 0.0.0.0/0
+            gateway: <YOUR_GATEWAY_HERE>
+        dhcp: false 
+  kubelet:
+    extraMounts:
+      - destination: /var/lib/longhorn
+        type: bind
+        source: /var/lib/longhorn
+        options:
+          - bind
+          - rshared
+          - rw

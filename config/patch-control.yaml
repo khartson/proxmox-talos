@@ -1,0 +1,22 @@
+machine: 
+  network:
+    hostname: talos-ctrl
+    interfaces:
+      - deviceSelector:
+          physical: true 
+        addresses:
+          - <YOUR_IP_HERE>
+        routes:
+          - network: 0.0.0.0/0
+            gateway: <YOUR_GATEWAY_HERE>
+        dhcp: false 
+  kubelet:
+    extraConfig:
+      systemReserved:
+        cpu: "200m"
+        memory: "200Mi"
+      kubeReserved:
+        cpu: "100m"
+        memory: "100Mi"
+      evictionHard: 
+        memory.available: "200Mi"
