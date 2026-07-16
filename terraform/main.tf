@@ -44,7 +44,7 @@ resource "proxmox_virtual_environment_vm" "control" {
 
     node_name   = var.proxmox_node 
 
-    boot_order = ["scsi0", "cdrom"]
+    boot_order = ["scsi0", "ide3"]
 
     vm_id       = 1000
 
@@ -71,6 +71,7 @@ resource "proxmox_virtual_environment_vm" "control" {
 
     cdrom {
         file_id = proxmox_download_file.talos.id
+        interface = "ide3"
     }
 
     initialization {
@@ -96,7 +97,7 @@ resource "proxmox_virtual_environment_vm" "workers" {
 
     node_name   = var.proxmox_node 
     
-    boot_order = ["scsi0", "cdrom"]
+    boot_order = ["scsi0", "ide3"]
 
     vm_id       = 2000 + (count.index + 1) 
 
@@ -112,7 +113,7 @@ resource "proxmox_virtual_environment_vm" "workers" {
     }
 
     memory { 
-        dedicated = 2048
+        dedicated = 3072 
     }
 
     disk {
@@ -123,6 +124,7 @@ resource "proxmox_virtual_environment_vm" "workers" {
 
     cdrom {
         file_id = proxmox_download_file.talos.id
+        interface = "ide3"
     }
 
     initialization {
