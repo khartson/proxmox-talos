@@ -1,0 +1,49 @@
+# Terraform files
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform/
+.terraform.lock.hcl
+crash.log
+crash.*.log
+
+# Ansible files
+*.retry
+inventory.ini
+inventory.yml
+ansible/.env
+# Note: ansible/ansible.cfg is tracked (project configuration)
+
+# SSH keys
+*.pem
+*.key
+id_rsa
+id_rsa.pub
+*.pub
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+**/**/patch-tailscale.yaml
+**/**/common.yaml
+**/**/secrets.yaml
