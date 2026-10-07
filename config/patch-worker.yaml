@@ -1,15 +1,6 @@
+# Worker role patch (applied to every worker node).
+# Per-node hostname/IP settings live in patch-node.yaml.tftpl.
 machine:
-  network:
-    hostname: talos-worker-01
-    interfaces:
-      - deviceSelector:
-          physical: true
-        addresses:
-          - <YOUR_IP_HERE>
-        routes:
-          - network: 0.0.0.0/0
-            gateway: <YOUR_GATEWAY_HERE>
-        dhcp: false
   kubelet:
     extraMounts:
       - destination: /var/lib/longhorn

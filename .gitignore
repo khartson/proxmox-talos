@@ -39,10 +39,18 @@ Thumbs.db
 *.temp
 
 # Talos generated configs / secrets
+# talosconfig/secrets.yaml are distinctive names, so they're ignored everywhere.
+# controlplane.yaml/worker.yaml are generic names, so they're only ignored where
+# `talosctl gen config` writes them (repo root, config/, terraform/). That way
+# future manifests or Helm values with these names aren't silently ignored.
 **/secrets.yaml
 **/talosconfig
-**/controlplane.yaml
-**/worker.yaml
+/controlplane.yaml
+/worker.yaml
+/config/controlplane.yaml
+/config/worker.yaml
+/terraform/controlplane.yaml
+/terraform/worker.yaml
 config/talos-ctrl.yaml
 config/talos-worker.yaml
 

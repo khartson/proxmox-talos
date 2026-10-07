@@ -1,0 +1,9 @@
+# Tailscale extension service config, rendered by Terraform only when
+# var.tailscale_authkey is set. Values are JSON-encoded (valid YAML) so the
+# auth key never has to be escaped by hand. Never commit a rendered copy.
+apiVersion: v1alpha1
+kind: ExtensionServiceConfig
+name: tailscale
+environment:
+  - ${jsonencode("TS_AUTHKEY=${authkey}")}
+  - ${jsonencode("TS_HOSTNAME=${hostname}")}

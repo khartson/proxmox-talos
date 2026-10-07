@@ -1,0 +1,29 @@
+# Per-node patch rendered by Terraform (terraform/talos.tf).
+# Variables: hostname, ip, prefix, gateway, nameservers, install_disk, installer_image
+machine:
+  install:
+    disk: ${install_disk}
+    image: ${installer_image}
+  network:
+    interfaces:
+      - deviceSelector:
+          physical: true
+        addresses:
+          - ${ip}/${prefix}
+        routes:
+          - network: 0.0.0.0/0
+            gateway: ${gateway}
+        dhcp: false
+%{ if length(nameservers) > 0 ~}
+    nameservers:
+%{ for ns in nameservers ~}
+      - ${ns}
+%{ endfor ~}
+%{ endif ~}
+---
+# The v1.13 config contract generates a HostnameConfig document (auto: stable),
+# so the static hostname must be set here rather than in machine.network.hostname.
+apiVersion: v1alpha1
+kind: HostnameConfig
+auto: "off"
+hostname: ${hostname}

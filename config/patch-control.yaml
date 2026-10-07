@@ -1,15 +1,6 @@
+# Control-plane role patch (applied to every controlplane node).
+# Per-node hostname/IP settings live in patch-node.yaml.tftpl.
 machine:
-  network:
-    hostname: talos-ctrl
-    interfaces:
-      - deviceSelector:
-          physical: true
-        addresses:
-          - <YOUR_IP_HERE>
-        routes:
-          - network: 0.0.0.0/0
-            gateway: <YOUR_GATEWAY_HERE>
-        dhcp: false
   kubelet:
     extraConfig:
       systemReserved:

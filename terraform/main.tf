@@ -9,18 +9,20 @@ resource "proxmox_download_file" "talos" {
   verify              = false
 }
 
-resource "proxmox_virtual_environment_vm" "control" {
+# One VM per entry in var.nodes. The map key is the VM name and the Talos hostname.
+resource "proxmox_virtual_environment_vm" "node" {
+  for_each   = var.nodes
   depends_on = [proxmox_download_file.talos]
 
-  name        = "talos-ctrl"
+  name        = each.key
   description = "Managed by terraform"
-  tags        = ["k8s", "talos", "control-plane"]
+  tags        = ["k8s", "talos", local.role_tag[each.value.role]]
 
   node_name = var.proxmox_node
 
   boot_order = ["scsi0", "ide3"]
 
-  vm_id = 1000
+  vm_id = each.value.vm_id
 
   agent {
     enabled = true
@@ -29,18 +31,18 @@ resource "proxmox_virtual_environment_vm" "control" {
   stop_on_destroy = true
 
   cpu {
-    cores = 2
+    cores = local.node_specs[each.key].cores
     type  = "host"
   }
 
   memory {
-    dedicated = 2048
+    dedicated = local.node_specs[each.key].memory
   }
 
   disk {
     datastore_id = var.disk_datastore_id
     interface    = "scsi0"
-    size         = 20
+    size         = local.node_specs[each.key].disk_size
   }
 
   cdrom {
@@ -48,6 +50,9 @@ resource "proxmox_virtual_environment_vm" "control" {
     interface = "ide3"
   }
 
+  # Kept unchanged so that migrating existing VMs is a no-op. The Talos metal
+  # ISO does not read cloud-init, so this DHCP setting has no effect: the static
+  # IP comes from the Talos machine config (see talos.tf).
   initialization {
     ip_config {
       ipv4 {
@@ -58,58 +63,27 @@ resource "proxmox_virtual_environment_vm" "control" {
 
   network_device {
     bridge = "vmbr0"
+    # Optional fixed MAC so a DHCP reservation can hand out the node's static IP
+    # while it boots the ISO in maintenance mode. null lets Proxmox pick one.
+    mac_address = each.value.mac_address
   }
 }
 
-resource "proxmox_virtual_environment_vm" "workers" {
-  depends_on = [proxmox_download_file.talos]
+# State migration from the pre-for_each resources. These map the default
+# topology only. If you had more than 2 workers (count > 2), add a matching
+# block for each extra one, e.g. workers[2] -> node["talos-worker-03"], before
+# running plan. Otherwise Terraform will destroy and recreate those VMs.
+moved {
+  from = proxmox_virtual_environment_vm.control
+  to   = proxmox_virtual_environment_vm.node["talos-ctrl"]
+}
 
-  count       = var.worker_count
-  name        = "talos-worker-0${count.index + 1}"
-  description = "Managed by terraform"
-  tags        = ["k8s", "talos", "worker"]
+moved {
+  from = proxmox_virtual_environment_vm.workers[0]
+  to   = proxmox_virtual_environment_vm.node["talos-worker-01"]
+}
 
-  node_name = var.proxmox_node
-
-  boot_order = ["scsi0", "ide3"]
-
-  vm_id = 2000 + (count.index + 1)
-
-  agent {
-    enabled = true
-  }
-
-  stop_on_destroy = true
-
-  cpu {
-    cores = 1
-    type  = "host"
-  }
-
-  memory {
-    dedicated = 3072
-  }
-
-  disk {
-    datastore_id = var.disk_datastore_id
-    interface    = "scsi0"
-    size         = 20
-  }
-
-  cdrom {
-    file_id   = proxmox_download_file.talos.id
-    interface = "ide3"
-  }
-
-  initialization {
-    ip_config {
-      ipv4 {
-        address = "dhcp"
-      }
-    }
-  }
-
-  network_device {
-    bridge = "vmbr0"
-  }
+moved {
+  from = proxmox_virtual_environment_vm.workers[1]
+  to   = proxmox_virtual_environment_vm.node["talos-worker-02"]
 }

@@ -1,7 +1,8 @@
 # Copy to terraform.tfvars (gitignored) and fill in real values.
+# All addresses below are RFC 5737 documentation placeholders (192.0.2.0/24).
 
-proxmox_api_url          = "https://proxmox.example.local:8006/"
-proxmox_node             = "pve"
+proxmox_api_url = "https://proxmox.example.local:8006/"
+proxmox_node    = "pve"
 
 # API token: preferably supply it as TF_VAR_proxmox_api_token_id /
 # TF_VAR_proxmox_api_token_secret so it never touches disk. NOTE: a value set
@@ -12,12 +13,53 @@ proxmox_node             = "pve"
 
 # Talos ISO, e.g. an Image Factory URL for a schematic with the
 # extensions you need (qemu-guest-agent, tailscale, ...).
-talos_image_url                 = "https://factory.talos.dev/image/<SCHEMATIC_ID>/<TALOS_VERSION>/metal-amd64.iso"
-talos_image_file_name           = "talos-<TALOS_VERSION>-amd64.iso"
+talos_image_url                 = "https://factory.talos.dev/image/<SCHEMATIC_ID>/v1.14.1/metal-amd64.iso"
+talos_image_file_name           = "talos-v1.14.1-amd64.iso"
 talos_image_overwrite_unmanaged = false
+
+# Use the same schematic as the ISO so the extensions survive installation.
+# talos_schematic_id = "<SCHEMATIC_ID>"
+# talos_version      = "v1.14.1"
+
+# Cluster nodes. The keys are the VM names and Talos hostnames. These keys,
+# vm_ids and the role sizing defaults (CP 2 cores/2048 MiB, worker 1 core/
+# 3072 MiB, 20 GB disk) match the original VMs, so the moved blocks in main.tf
+# adopt existing VMs without recreating them.
+# mac_address is optional. Set it and create a DHCP reservation for the same IP,
+# so the node is reachable at its static IP while it boots the ISO.
+nodes = {
+  "talos-ctrl" = {
+    role  = "controlplane"
+    vm_id = 1000
+    ip    = "192.0.2.10"
+    # mac_address = "BC:24:11:00:00:10"
+  }
+  "talos-worker-01" = {
+    role  = "worker"
+    vm_id = 2001
+    ip    = "192.0.2.21"
+  }
+  "talos-worker-02" = {
+    role  = "worker"
+    vm_id = 2002
+    ip    = "192.0.2.22"
+  }
+}
+
+node_network_prefix = 24
+node_gateway        = "192.0.2.1"
+# node_nameservers  = ["192.0.2.1"]   # default [] = Talos defaults
+
+# cluster_name     = "talos"
+# cluster_endpoint = "https://192.0.2.10:6443"   # default: first control-plane IP
+
+# Tailscale (optional). Prefer TF_VAR_tailscale_authkey, and never commit the key.
+# tailscale_authkey = "tskey-auth-<PLACEHOLDER>"
 
 # Optional (defaults shown)
 # talos_image_upload_timeout = 900
 # datastore_id               = "local"
 # disk_datastore_id          = "local-lvm"
-# worker_count               = 2
+# talos_install_disk         = "/dev/sda"
+# kubernetes_version         = "v1.37.0"
+# talos_config_contract      = "v1.13"   # don't change on an existing cluster

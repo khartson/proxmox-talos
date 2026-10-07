@@ -3,20 +3,31 @@ output "talos_iso_file_id" {
   value       = proxmox_download_file.talos.id
 }
 
-output "control_plane_vm" {
-  description = "VM ID and name of the control-plane VM"
+output "nodes" {
+  description = "Per-node VM ID, role and static IP"
   value = {
-    vm_id = proxmox_virtual_environment_vm.control.vm_id
-    name  = proxmox_virtual_environment_vm.control.name
+    for name, vm in proxmox_virtual_environment_vm.node : name => {
+      vm_id = vm.vm_id
+      name  = vm.name
+      role  = var.nodes[name].role
+      ip    = var.nodes[name].ip
+    }
   }
 }
 
-output "worker_vms" {
-  description = "VM IDs and names of the worker VMs"
-  value = [
-    for vm in proxmox_virtual_environment_vm.workers : {
-      vm_id = vm.vm_id
-      name  = vm.name
-    }
-  ]
+output "cluster_endpoint" {
+  description = "Kubernetes API endpoint"
+  value       = local.cluster_endpoint
+}
+
+output "talosconfig" {
+  description = "talosctl client config. Write it to a gitignored path: terraform output -raw talosconfig > ../config/talosconfig"
+  value       = data.talos_client_configuration.this.talos_config
+  sensitive   = true
+}
+
+output "kubeconfig" {
+  description = "Admin kubeconfig. Write it to a gitignored path: terraform output -raw kubeconfig > ../config/kubeconfig"
+  value       = talos_cluster_kubeconfig.this.kubeconfig_raw
+  sensitive   = true
 }
