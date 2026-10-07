@@ -1,5 +1,7 @@
 terraform {
-  required_version = ">= 1.7.0"
+  # 1.9+: variable validations reference other variables (installer image,
+  # bootstrap_node, cluster_endpoint, gateway subnet checks).
+  required_version = ">= 1.9.0"
 
   required_providers {
     proxmox = {

@@ -4,6 +4,9 @@
 *.tfvars
 *.tfvars.json
 !*.tfvars.example
+# Saved plans (terraform plan -out) hold secrets in plaintext
+*.tfplan
+tfplan
 .terraform/
 crash.log
 crash.*.log

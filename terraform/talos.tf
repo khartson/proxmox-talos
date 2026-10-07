@@ -76,9 +76,10 @@ resource "talos_machine_configuration_apply" "node" {
   node     = each.value.ip
   endpoint = each.value.ip
 
-  # depends_on only accepts whole resources, so it orders every apply after all
-  # VMs. The replace_triggered_by below adds the per-node edge and also re-applies
-  # the config when this node's VM is recreated (new disk = maintenance mode again).
+  # Ordering: Terraform tracks dependencies per resource, not per instance, so
+  # every apply waits for all VMs. replace_triggered_by doesn't add ordering. It
+  # only re-runs this node's apply when its VM is replaced (new empty disk =
+  # maintenance mode again). In-place VM edits don't trigger it.
   depends_on = [proxmox_virtual_environment_vm.node]
 
   lifecycle {
@@ -90,10 +91,11 @@ resource "talos_machine_configuration_apply" "node" {
   }
 }
 
-# Bootstrap etcd exactly once, on the first control-plane node (sorted by name).
-# `node` references that node's config-apply instance. This is the dependency
-# on the control-plane config apply, scoped to that one instance (depends_on
-# can't target a single for_each instance), so bootstrap doesn't wait on workers.
+# Bootstrap etcd exactly once, on local.bootstrap_node_name (var.bootstrap_node,
+# or the first control-plane key in sorted order).
+# Ordering: dependencies are per resource, so bootstrap waits for ALL config
+# applies, workers included. This can't deadlock: an apply to a maintenance-mode
+# node returns once the config is accepted, without waiting to join the cluster.
 #
 # Not re-run automatically: if the bootstrap node's VM is recreated in a
 # single-control-plane cluster, run
@@ -101,11 +103,21 @@ resource "talos_machine_configuration_apply" "node" {
 # Auto re-bootstrap would split etcd in a multi-control-plane cluster.
 resource "talos_machine_bootstrap" "this" {
   client_configuration = talos_machine_secrets.this.client_configuration
-  node                 = talos_machine_configuration_apply.node[local.bootstrap_node_name].node
+  node                 = local.bootstrap_node_ip
   endpoint             = local.bootstrap_node_ip
+
+  depends_on = [talos_machine_configuration_apply.node]
 
   timeouts = {
     create = "15m"
+  }
+
+  lifecycle {
+    # Bootstrap is a one-shot. If the bootstrap node later changes (another
+    # control plane sorts first, or a new IP), keep the recorded value. In
+    # provider 0.12.0 node/endpoint are not RequiresReplace, so this mainly
+    # prevents misleading diffs and guards against a future provider change.
+    ignore_changes = [node, endpoint]
   }
 }
 

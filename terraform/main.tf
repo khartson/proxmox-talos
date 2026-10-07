@@ -65,7 +65,8 @@ resource "proxmox_virtual_environment_vm" "node" {
     bridge = "vmbr0"
     # Optional fixed MAC so a DHCP reservation can hand out the node's static IP
     # while it boots the ISO in maintenance mode. null lets Proxmox pick one.
-    mac_address = each.value.mac_address
+    # Upper-cased because Proxmox reports MACs in upper case (avoids a perpetual diff).
+    mac_address = each.value.mac_address == null ? null : upper(each.value.mac_address)
   }
 }
 

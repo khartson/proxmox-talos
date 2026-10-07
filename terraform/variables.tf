@@ -130,6 +130,14 @@ variable "node_gateway" {
     condition     = can(cidrnetmask("${var.node_gateway}/32"))
     error_message = "node_gateway must be a valid IPv4 address."
   }
+
+  validation {
+    condition = alltrue([
+      for n in values(var.nodes) :
+      try(cidrhost("${n.ip}/${var.node_network_prefix}", 0) == cidrhost("${var.node_gateway}/${var.node_network_prefix}", 0), false)
+    ])
+    error_message = "Every node ip and node_gateway must be in the same /node_network_prefix subnet."
+  }
 }
 
 variable "node_nameservers" {
@@ -151,7 +159,11 @@ variable "cluster_name" {
 }
 
 variable "cluster_endpoint" {
-  description = "Kubernetes API endpoint. null defaults to https://<first control-plane IP>:6443."
+  description = <<-EOT
+    Kubernetes API endpoint. null (single control plane only) defaults to https://<control-plane IP>:6443.
+    Required when there is more than one control-plane node. Use a VIP or DNS name so the endpoint
+    doesn't change when control-plane nodes are added or removed.
+  EOT
   type        = string
   default     = null
 
@@ -159,15 +171,39 @@ variable "cluster_endpoint" {
     condition     = var.cluster_endpoint == null || can(regex("^https://[^/]+:[0-9]+$", var.cluster_endpoint))
     error_message = "cluster_endpoint must look like https://<host>:<port>."
   }
+
+  validation {
+    # A derived default would silently move to another node when control-plane
+    # nodes are added, re-pushing a new endpoint to every node.
+    condition     = var.cluster_endpoint != null || length([for n in values(var.nodes) : n if n.role == "controlplane"]) <= 1
+    error_message = "cluster_endpoint must be set explicitly (ideally a VIP or DNS name) when there is more than one controlplane node."
+  }
+}
+
+variable "bootstrap_node" {
+  description = <<-EOT
+    Key of the control-plane node that bootstraps etcd. null = first control-plane key in sorted order.
+    Set this explicitly before adding control-plane nodes, so the choice never moves to another node.
+  EOT
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.bootstrap_node == null || try(var.nodes[var.bootstrap_node].role == "controlplane", false)
+    error_message = "bootstrap_node must be the key of a node in var.nodes with role \"controlplane\"."
+  }
 }
 
 variable "talos_version" {
-  description = "Talos version installed on the nodes (installer image tag). Should match the ISO in talos_image_url."
+  description = <<-EOT
+    Talos version for the installer image tag. null = derived from talos_image_url
+    (https://factory.talos.dev/image/<schematic>/<version>/...). Set only to override.
+  EOT
   type        = string
-  default     = "v1.14.1"
+  default     = null
 
   validation {
-    condition     = can(regex("^v[0-9]+\\.[0-9]+\\.[0-9]+$", var.talos_version))
+    condition     = var.talos_version == null || can(regex("^v[0-9]+\\.[0-9]+\\.[0-9]+$", var.talos_version))
     error_message = "talos_version must look like v1.14.1."
   }
 }
@@ -186,21 +222,46 @@ variable "kubernetes_version" {
   description = "Kubernetes version to deploy (default for Talos v1.14)"
   type        = string
   default     = "v1.37.0"
+
+  validation {
+    condition     = can(regex("^v[0-9]+\\.[0-9]+\\.[0-9]+$", var.kubernetes_version))
+    error_message = "kubernetes_version must look like v1.37.0."
+  }
 }
 
 variable "talos_schematic_id" {
   description = <<-EOT
-    Talos Image Factory schematic ID used for the installer image. Use the same schematic as the ISO
-    so the system extensions survive installation. The default is the vanilla (no extensions) schematic.
+    Talos Image Factory schematic ID for the installer image. null = derived from talos_image_url, so
+    the installed OS keeps the same system extensions as the ISO. Set only to override.
   EOT
   type        = string
-  default     = "376567988ad370138ad8b2698212367b8edcb69b5fd68c80be1f2ec7d603b4ba"
+  default     = null
+
+  validation {
+    condition     = var.talos_schematic_id == null || can(regex("^[0-9a-f]{64}$", var.talos_schematic_id))
+    error_message = "talos_schematic_id must be a 64-character lowercase hex Image Factory schematic ID."
+  }
 }
 
 variable "talos_installer_image" {
-  description = "Full installer image reference. Overrides talos_schematic_id/talos_version when set."
+  description = "Full installer image reference. Overrides talos_schematic_id/talos_version (and the URL derivation) when set."
   type        = string
   default     = null
+
+  validation {
+    # Same regex as local.talos_image_url_parts (locals can't be referenced in
+    # variable validation). Fails at plan time, before any VM is created, when
+    # the installer image can't be determined.
+    condition = var.talos_installer_image != null || (
+      (var.talos_schematic_id != null || can(regex("factory\\.talos\\.dev/image/([0-9a-f]{64})/(v[0-9]+\\.[0-9]+\\.[0-9]+)/", var.talos_image_url))) &&
+      (var.talos_version != null || can(regex("factory\\.talos\\.dev/image/([0-9a-f]{64})/(v[0-9]+\\.[0-9]+\\.[0-9]+)/", var.talos_image_url)))
+    )
+    error_message = <<-EOT
+      Cannot determine the Talos installer image: talos_image_url is not an Image Factory URL of the form
+      https://factory.talos.dev/image/<64-hex schematic>/<vX.Y.Z>/<file>.iso. Use such a URL, or set
+      talos_schematic_id and talos_version (or talos_installer_image) explicitly.
+    EOT
+  }
 }
 
 variable "talos_install_disk" {
@@ -214,4 +275,9 @@ variable "tailscale_authkey" {
   type        = string
   default     = null
   sensitive   = true
+
+  validation {
+    condition     = var.tailscale_authkey == null || try(length(trimspace(var.tailscale_authkey)) > 0, false)
+    error_message = "tailscale_authkey must be null (disabled) or a non-empty key."
+  }
 }

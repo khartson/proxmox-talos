@@ -11,15 +11,19 @@ proxmox_node    = "pve"
 # proxmox_api_token_id     = "terraform@pve!example-token"
 # proxmox_api_token_secret = "00000000-0000-0000-0000-000000000000"
 
-# Talos ISO, e.g. an Image Factory URL for a schematic with the
-# extensions you need (qemu-guest-agent, tailscale, ...).
+# Talos ISO: an Image Factory URL for a schematic with the extensions you need
+# (qemu-guest-agent, plus tailscale if tailscale_authkey is set). Replace
+# <SCHEMATIC_ID> with the 64-character ID from factory.talos.dev. The schematic
+# and version are parsed from this URL for the installer image, so the
+# installed OS keeps the same extensions. Validation fails until it parses.
 talos_image_url                 = "https://factory.talos.dev/image/<SCHEMATIC_ID>/v1.14.1/metal-amd64.iso"
 talos_image_file_name           = "talos-v1.14.1-amd64.iso"
 talos_image_overwrite_unmanaged = false
 
-# Use the same schematic as the ISO so the extensions survive installation.
-# talos_schematic_id = "<SCHEMATIC_ID>"
-# talos_version      = "v1.14.1"
+# Overrides, only needed if talos_image_url is not an Image Factory URL:
+# talos_schematic_id    = "<SCHEMATIC_ID>"
+# talos_version         = "v1.14.1"
+# talos_installer_image = "factory.talos.dev/metal-installer/<SCHEMATIC_ID>:v1.14.1"
 
 # Cluster nodes. The keys are the VM names and Talos hostnames. These keys,
 # vm_ids and the role sizing defaults (CP 2 cores/2048 MiB, worker 1 core/
@@ -51,7 +55,8 @@ node_gateway        = "192.0.2.1"
 # node_nameservers  = ["192.0.2.1"]   # default [] = Talos defaults
 
 # cluster_name     = "talos"
-# cluster_endpoint = "https://192.0.2.10:6443"   # default: first control-plane IP
+# cluster_endpoint = "https://192.0.2.10:6443"   # default (1 CP only): the CP's IP. Required with >1 CP.
+# bootstrap_node   = "talos-ctrl"                # default: first CP key in sorted order. Pin before adding CPs.
 
 # Tailscale (optional). Prefer TF_VAR_tailscale_authkey, and never commit the key.
 # tailscale_authkey = "tskey-auth-<PLACEHOLDER>"
