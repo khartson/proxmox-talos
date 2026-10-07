@@ -1,11 +1,14 @@
 # Copy to terraform.tfvars (gitignored) and fill in real values.
-# The token values can also be supplied as TF_VAR_proxmox_api_token_id /
-# TF_VAR_proxmox_api_token_secret so they never touch disk.
 
 proxmox_api_url          = "https://proxmox.example.local:8006/"
 proxmox_node             = "pve"
-proxmox_api_token_id     = "terraform@pve!example-token"
-proxmox_api_token_secret = "00000000-0000-0000-0000-000000000000"
+
+# API token: preferably supply it as TF_VAR_proxmox_api_token_id /
+# TF_VAR_proxmox_api_token_secret so it never touches disk. NOTE: a value set
+# in terraform.tfvars overrides the TF_VAR_* env var, so leave these lines
+# commented out if you use env vars.
+# proxmox_api_token_id     = "terraform@pve!example-token"
+# proxmox_api_token_secret = "00000000-0000-0000-0000-000000000000"
 
 # Talos ISO, e.g. an Image Factory URL for a schematic with the
 # extensions you need (qemu-guest-agent, tailscale, ...).

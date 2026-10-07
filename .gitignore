@@ -2,6 +2,7 @@
 *.tfstate
 *.tfstate.*
 *.tfvars
+*.tfvars.json
 !*.tfvars.example
 .terraform/
 crash.log
@@ -36,10 +37,12 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
-**/**/secrets.yaml
-config/controlplane.yaml
-config/talosconfig
-config/worker.yaml
+
+# Talos generated configs / secrets
+**/secrets.yaml
+**/talosconfig
+**/controlplane.yaml
+**/worker.yaml
 config/talos-ctrl.yaml
 config/talos-worker.yaml
 

@@ -40,11 +40,17 @@ terraform plan
 ```
 
 You can pass the API token as environment variables instead of writing it to disk:
-`TF_VAR_proxmox_api_token_id` and `TF_VAR_proxmox_api_token_secret`.
+`TF_VAR_proxmox_api_token_id` and `TF_VAR_proxmox_api_token_secret`. A value set
+in `terraform.tfvars` overrides the matching `TF_VAR_*` variable, so keep the
+token lines in `terraform.tfvars` commented out (as in the example) when using
+env vars.
 
-Never commit `terraform.tfvars`, `*.tfstate`, generated Talos configs
-(`talosconfig`, `controlplane.yaml`, `worker.yaml`, `secrets.yaml`) or a
-`kubeconfig`. `.gitignore` already covers them.
+Never commit `terraform.tfvars`/`*.tfvars.json`, `*.tfstate`, generated Talos
+configs or a `kubeconfig`. `.gitignore` ignores `talosconfig`,
+`controlplane.yaml`, `worker.yaml`, `secrets.yaml` and `kubeconfig` in any
+directory, plus `config/talos-ctrl.yaml` and `config/talos-worker.yaml`. Keep
+generated configs together by writing them to `config/`
+(`talosctl gen config ... -o config/`).
 
 ## Cluster bootstrap
 
