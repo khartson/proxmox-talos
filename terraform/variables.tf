@@ -5,7 +5,7 @@ variable "proxmox_api_url" {
 }
 
 variable "proxmox_node" {
-  description = "Proxmox node name where the container will be created"
+  description = "Proxmox node name where the VMs will be created"
   type        = string
 }
 
@@ -22,28 +22,28 @@ variable "proxmox_api_token_secret" {
 }
 
 variable "talos_image_url" {
-  description = "Talos ISO image URL used when download_talos_image is true"
+  description = "URL of the Talos ISO image to download into the Proxmox datastore"
   type        = string
-  }
+}
 
 variable "talos_image_file_name" {
-  description = "Target filename for the downloaded talos template in Proxmox datastore"
+  description = "Target filename for the downloaded Talos ISO in the Proxmox datastore"
   type        = string
 }
 
 variable "talos_image_overwrite_unmanaged" {
-  description = "Replace an existing unmanaged template file with the same name when downloading"
+  description = "Replace an existing unmanaged ISO file with the same name when downloading"
   type        = bool
 }
 
 variable "talos_image_upload_timeout" {
-  description = "Timeout in seconds for downloading the talos template"
+  description = "Timeout in seconds for downloading the Talos ISO"
   type        = number
   default     = 900
 }
 
 variable "datastore_id" {
-  description = "Proxmox datastore ID for the VM template"
+  description = "Proxmox datastore ID where the Talos ISO is stored"
   type        = string
   default     = "local"
 }

@@ -1,0 +1,20 @@
+# Copy to terraform.tfvars (gitignored) and fill in real values.
+# The token values can also be supplied as TF_VAR_proxmox_api_token_id /
+# TF_VAR_proxmox_api_token_secret so they never touch disk.
+
+proxmox_api_url          = "https://proxmox.example.local:8006/"
+proxmox_node             = "pve"
+proxmox_api_token_id     = "terraform@pve!example-token"
+proxmox_api_token_secret = "00000000-0000-0000-0000-000000000000"
+
+# Talos ISO, e.g. an Image Factory URL for a schematic with the
+# extensions you need (qemu-guest-agent, tailscale, ...).
+talos_image_url                 = "https://factory.talos.dev/image/<SCHEMATIC_ID>/<TALOS_VERSION>/metal-amd64.iso"
+talos_image_file_name           = "talos-<TALOS_VERSION>-amd64.iso"
+talos_image_overwrite_unmanaged = false
+
+# Optional (defaults shown)
+# talos_image_upload_timeout = 900
+# datastore_id               = "local"
+# disk_datastore_id          = "local-lvm"
+# worker_count               = 2

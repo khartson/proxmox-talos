@@ -4,16 +4,8 @@
 *.tfvars
 !*.tfvars.example
 .terraform/
-.terraform.lock.hcl
 crash.log
 crash.*.log
-
-# Ansible files
-*.retry
-inventory.ini
-inventory.yml
-ansible/.env
-# Note: ansible/ansible.cfg is tracked (project configuration)
 
 # SSH keys
 *.pem
@@ -44,10 +36,13 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
-**/**/common.yaml
 **/**/secrets.yaml
 config/controlplane.yaml
 config/talosconfig
 config/worker.yaml
 config/talos-ctrl.yaml
 config/talos-worker.yaml
+
+# Kubernetes credentials
+kubeconfig
+**/kubeconfig

@@ -3,13 +3,13 @@ machine:
     hostname: talos-worker-01
     interfaces:
       - deviceSelector:
-          physical: true 
+          physical: true
         addresses:
           - <YOUR_IP_HERE>
         routes:
           - network: 0.0.0.0/0
             gateway: <YOUR_GATEWAY_HERE>
-        dhcp: false 
+        dhcp: false
   kubelet:
     extraMounts:
       - destination: /var/lib/longhorn
