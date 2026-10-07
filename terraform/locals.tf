@@ -40,7 +40,7 @@ locals {
   # and the talos_schematic_id / talos_version variables override them. The
   # talos_installer_image validation fails early if neither source works.
   talos_image_url_parts = try(
-    regex("factory\\.talos\\.dev/image/([0-9a-f]{64})/(v[0-9]+\\.[0-9]+\\.[0-9]+)/", var.talos_image_url),
+    regex("factory\\.talos\\.dev/image/([0-9a-f]{64})/(v[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.]+)?)/", var.talos_image_url),
     [null, null],
   )
   talos_schematic_id = var.talos_schematic_id != null ? var.talos_schematic_id : local.talos_image_url_parts[0]

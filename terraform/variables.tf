@@ -1,6 +1,6 @@
 # Proxmox Connection Variables
 variable "proxmox_api_url" {
-  description = "Proxmox API endpoint URL (e.g. https://10.0.0.6:8006/) — do not include /api2/json"
+  description = "Proxmox API endpoint URL (e.g. https://proxmox.example.local:8006/) — do not include /api2/json"
   type        = string
 }
 
@@ -203,8 +203,8 @@ variable "talos_version" {
   default     = null
 
   validation {
-    condition     = var.talos_version == null || can(regex("^v[0-9]+\\.[0-9]+\\.[0-9]+$", var.talos_version))
-    error_message = "talos_version must look like v1.14.1."
+    condition     = var.talos_version == null || can(regex("^v[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.]+)?$", var.talos_version))
+    error_message = "talos_version must look like v1.14.1 (optionally with a pre-release suffix, e.g. v1.15.0-beta.1)."
   }
 }
 
@@ -253,8 +253,8 @@ variable "talos_installer_image" {
     # variable validation). Fails at plan time, before any VM is created, when
     # the installer image can't be determined.
     condition = var.talos_installer_image != null || (
-      (var.talos_schematic_id != null || can(regex("factory\\.talos\\.dev/image/([0-9a-f]{64})/(v[0-9]+\\.[0-9]+\\.[0-9]+)/", var.talos_image_url))) &&
-      (var.talos_version != null || can(regex("factory\\.talos\\.dev/image/([0-9a-f]{64})/(v[0-9]+\\.[0-9]+\\.[0-9]+)/", var.talos_image_url)))
+      (var.talos_schematic_id != null || can(regex("factory\\.talos\\.dev/image/([0-9a-f]{64})/(v[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.]+)?)/", var.talos_image_url))) &&
+      (var.talos_version != null || can(regex("factory\\.talos\\.dev/image/([0-9a-f]{64})/(v[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.]+)?)/", var.talos_image_url)))
     )
     error_message = <<-EOT
       Cannot determine the Talos installer image: talos_image_url is not an Image Factory URL of the form
