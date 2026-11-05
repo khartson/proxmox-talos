@@ -2,18 +2,14 @@
 *.tfstate
 *.tfstate.*
 *.tfvars
+*.tfvars.json
 !*.tfvars.example
+# Saved plans (terraform plan -out) hold secrets in plaintext
+*.tfplan
+tfplan
 .terraform/
-.terraform.lock.hcl
 crash.log
 crash.*.log
-
-# Ansible files
-*.retry
-inventory.ini
-inventory.yml
-ansible/.env
-# Note: ansible/ansible.cfg is tracked (project configuration)
 
 # SSH keys
 *.pem
@@ -44,10 +40,23 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
-**/**/common.yaml
-**/**/secrets.yaml
-config/controlplane.yaml
-config/talosconfig
-config/worker.yaml
+
+# Talos generated configs / secrets
+# talosconfig/secrets.yaml are distinctive names, so they're ignored everywhere.
+# controlplane.yaml/worker.yaml are generic names, so they're only ignored where
+# `talosctl gen config` writes them (repo root, config/, terraform/). That way
+# future manifests or Helm values with these names aren't silently ignored.
+**/secrets.yaml
+**/talosconfig
+/controlplane.yaml
+/worker.yaml
+/config/controlplane.yaml
+/config/worker.yaml
+/terraform/controlplane.yaml
+/terraform/worker.yaml
 config/talos-ctrl.yaml
 config/talos-worker.yaml
+
+# Kubernetes credentials
+kubeconfig
+**/kubeconfig
